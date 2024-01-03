@@ -1,7 +1,6 @@
 ## TODO
 
 ### Request Content
-- headers
 - file
 - form data
 

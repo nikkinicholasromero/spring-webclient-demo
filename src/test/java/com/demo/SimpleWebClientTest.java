@@ -71,20 +71,22 @@ public class SimpleWebClientTest extends BaseWebServerUnitTest {
         RecordedRequest recordedRequest = mockBackEnd.takeRequest();
         assertThat(recordedRequest.getMethod()).isEqualTo(HttpMethod.POST.toString());
         assertThat(recordedRequest.getPath()).isEqualTo("/");
+        assertThat(recordedRequest.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON_VALUE);
         assertThat(objectMapper.readValue(recordedRequest.getBody().readUtf8(), RequestBody.class)).isEqualTo(request);
     }
 
     @Test
-    public void put() throws InterruptedException {
+    public void put_withCustomHeader() throws InterruptedException {
         mockBackEnd.enqueue(new MockResponse()
                 .setBody("Hello, World")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
-        assertEquals(target.put().block(), "Hello, World");
+        assertEquals(target.put_withCustomHeader().block(), "Hello, World");
 
         RecordedRequest recordedRequest = mockBackEnd.takeRequest();
         assertThat(recordedRequest.getMethod()).isEqualTo(HttpMethod.PUT.toString());
         assertThat(recordedRequest.getPath()).isEqualTo("/");
+        assertThat(recordedRequest.getHeader("X-Custom-Header")).isEqualTo("some-value");
     }
 
     @Test

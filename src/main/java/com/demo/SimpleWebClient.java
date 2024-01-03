@@ -40,10 +40,11 @@ public class SimpleWebClient {
                 .bodyToMono(String.class);
     }
 
-    public Mono<String> put() {
+    public Mono<String> put_withCustomHeader() {
         return webClient
                 .put()
                 .uri(host)
+                .header("X-Custom-Header", "some-value")
                 .retrieve()
                 .bodyToMono(String.class);
     }
