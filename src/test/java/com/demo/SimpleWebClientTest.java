@@ -3,7 +3,6 @@ package com.demo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
@@ -13,6 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -76,30 +77,36 @@ public class SimpleWebClientTest extends BaseWebServerUnitTest {
     }
 
     @Test
-    public void put_withCustomHeader() throws InterruptedException {
+    public void put_withFileRequestBody() throws InterruptedException, IOException {
         mockBackEnd.enqueue(new MockResponse()
                 .setBody("Hello, World")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
-        assertEquals(target.put_withCustomHeader().block(), "Hello, World");
+        String fileName = UUID.randomUUID().toString();
+        File file = new File(System.getProperty("java.io.tmpdir") + File.separatorChar + fileName + ".txt");
+        boolean fileCreated = file.createNewFile();
+        assertThat(fileCreated).isTrue();
+
+        assertEquals(target.put_withFileRequestBody(file, "file").block(), "Hello, World");
 
         RecordedRequest recordedRequest = mockBackEnd.takeRequest();
         assertThat(recordedRequest.getMethod()).isEqualTo(HttpMethod.PUT.toString());
         assertThat(recordedRequest.getPath()).isEqualTo("/");
-        assertThat(recordedRequest.getHeader("X-Custom-Header")).isEqualTo("some-value");
+        assertThat(recordedRequest.getHeader(HttpHeaders.CONTENT_TYPE)).startsWith(MediaType.MULTIPART_FORM_DATA_VALUE);
     }
 
     @Test
-    public void patch() throws InterruptedException {
+    public void patch_withCustomHeader() throws InterruptedException {
         mockBackEnd.enqueue(new MockResponse()
                 .setBody("Hello, World")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
-        assertEquals(target.patch().block(), "Hello, World");
+        assertEquals(target.patch_withCustomHeader().block(), "Hello, World");
 
         RecordedRequest recordedRequest = mockBackEnd.takeRequest();
         assertThat(recordedRequest.getMethod()).isEqualTo(HttpMethod.PATCH.toString());
         assertThat(recordedRequest.getPath()).isEqualTo("/");
+        assertThat(recordedRequest.getHeader("X-Custom-Header")).isEqualTo("some-value");
     }
 
     @Test
