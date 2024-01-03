@@ -32,7 +32,8 @@ public class SimpleWebClient {
                         .queryParamIfPresent("id", id)
                         .build())
                 .header("X-Custom-Header", "some-value")
-                .exchangeToMono(e -> e.bodyToMono(String.class));
+                .retrieve()
+                .bodyToMono(String.class);
     }
 
     public Mono<String> post_withJsonRequestBody(RequestBody request) {
@@ -44,13 +45,13 @@ public class SimpleWebClient {
                 .exchangeToMono(e -> e.bodyToMono(String.class));
     }
 
-    public Mono<String> put_withFileRequestBody(File file, String name) {
+    public Mono<String[]> put_withFileRequestBody(File file, String name) {
         return webClient
                 .put()
                 .uri(host)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(multipart(file, name)))
-                .exchangeToMono(e -> e.bodyToMono(String.class));
+                .exchangeToMono(e -> e.bodyToMono(String[].class));
     }
 
     public Mono<String> patch_withFormRequestBody(RequestBody request) {

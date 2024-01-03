@@ -8,11 +8,6 @@
 - headers
 - body
 
-## Response Body
-- exchangeToMono
-- exchangeToFlux
-- retrieve
-
 ## Others
 - Timeout
 - Logging

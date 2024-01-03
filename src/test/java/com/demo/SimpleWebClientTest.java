@@ -81,7 +81,7 @@ public class SimpleWebClientTest extends BaseWebServerUnitTest {
     @Test
     public void put_withFileRequestBody() throws InterruptedException, IOException {
         mockBackEnd.enqueue(new MockResponse()
-                .setBody("Hello, World")
+                .setBody("[\"Hello\", \"World\"]")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
         String fileName = UUID.randomUUID().toString();
@@ -89,7 +89,7 @@ public class SimpleWebClientTest extends BaseWebServerUnitTest {
         boolean fileCreated = file.createNewFile();
         assertThat(fileCreated).isTrue();
 
-        assertEquals(target.put_withFileRequestBody(file, "file").block(), "Hello, World");
+        assertThat(target.put_withFileRequestBody(file, "file").block()).isEqualTo(new String[]{"Hello", "World"});
 
         RecordedRequest recordedRequest = mockBackEnd.takeRequest();
         assertThat(recordedRequest.getMethod()).isEqualTo(HttpMethod.PUT.toString());
