@@ -2,7 +2,6 @@
 
 ### Request Content
 - file (unit test assertion)
-- form data
 
 ## Response Content
 - status

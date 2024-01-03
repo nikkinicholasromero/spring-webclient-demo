@@ -3,6 +3,7 @@ package com.demo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
-import reactor.core.publisher.Mono;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,31 +30,33 @@ public class SimpleWebClientTest extends BaseWebServerUnitTest {
     }
 
     @Test
-    public void get_withOptionalQueryParam_withoutQueryParam() throws InterruptedException {
+    public void get_withOptionalQueryParam_withQueryParam_withoutQueryParam() throws InterruptedException {
         mockBackEnd.enqueue(new MockResponse()
                 .setBody("Hello, World")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
-        assertEquals(target.get_withOptionalQueryParam(Optional.empty()).block(), "Hello, World");
+        assertEquals(target.get_withOptionalQueryParam_withCustomHeader(Optional.empty()).block(), "Hello, World");
 
         RecordedRequest recordedRequest = mockBackEnd.takeRequest();
         assertThat(recordedRequest.getMethod()).isEqualTo(HttpMethod.GET.toString());
         assertThat(recordedRequest.getPath()).isEqualTo("/");
+        assertThat(recordedRequest.getHeader("X-Custom-Header")).isEqualTo("some-value");
     }
 
     @Test
-    public void get_withOptionalQueryParam_withQueryParam() throws InterruptedException {
+    public void get_withOptionalQueryParam_withQueryParam_withQueryParam() throws InterruptedException {
         mockBackEnd.enqueue(new MockResponse()
                 .setBody("Hello, World")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
         String id = UUID.randomUUID().toString();
 
-        assertEquals(target.get_withOptionalQueryParam(Optional.of(id)).block(), "Hello, World");
+        assertEquals(target.get_withOptionalQueryParam_withCustomHeader(Optional.of(id)).block(), "Hello, World");
 
         RecordedRequest recordedRequest = mockBackEnd.takeRequest();
         assertThat(recordedRequest.getMethod()).isEqualTo(HttpMethod.GET.toString());
         assertThat(recordedRequest.getPath()).isEqualTo("/?id=" + id);
+        assertThat(recordedRequest.getHeader("X-Custom-Header")).isEqualTo("some-value");
     }
 
     @Test
@@ -67,7 +69,7 @@ public class SimpleWebClientTest extends BaseWebServerUnitTest {
         String name = "Nikki Nicholas Romero";
         RequestBody request = new RequestBody(id, name);
 
-        assertEquals(target.post_withJsonRequestBody(Mono.just(request)).block(), "Hello, World");
+        assertEquals(target.post_withJsonRequestBody(request).block(), "Hello, World");
 
         RecordedRequest recordedRequest = mockBackEnd.takeRequest();
         assertThat(recordedRequest.getMethod()).isEqualTo(HttpMethod.POST.toString());
@@ -93,20 +95,26 @@ public class SimpleWebClientTest extends BaseWebServerUnitTest {
         assertThat(recordedRequest.getMethod()).isEqualTo(HttpMethod.PUT.toString());
         assertThat(recordedRequest.getPath()).isEqualTo("/");
         assertThat(recordedRequest.getHeader(HttpHeaders.CONTENT_TYPE)).startsWith(MediaType.MULTIPART_FORM_DATA_VALUE);
+        // TODO: Verify request body
     }
 
     @Test
-    public void patch_withCustomHeader() throws InterruptedException {
+    public void patch_withFormRequestBody() throws InterruptedException {
         mockBackEnd.enqueue(new MockResponse()
                 .setBody("Hello, World")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
-        assertEquals(target.patch_withCustomHeader().block(), "Hello, World");
+        String id = UUID.randomUUID().toString();
+        String name = "Nikki Nicholas Romero";
+        RequestBody request = new RequestBody(id, name);
+
+        assertEquals(target.patch_withFormRequestBody(request).block(), "Hello, World");
 
         RecordedRequest recordedRequest = mockBackEnd.takeRequest();
         assertThat(recordedRequest.getMethod()).isEqualTo(HttpMethod.PATCH.toString());
         assertThat(recordedRequest.getPath()).isEqualTo("/");
-        assertThat(recordedRequest.getHeader("X-Custom-Header")).isEqualTo("some-value");
+        assertThat(recordedRequest.getHeader(HttpHeaders.CONTENT_TYPE)).startsWith(MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        Assertions.assertThat(recordedRequest.getBody().readUtf8()).isEqualTo("id=" + id + "&name=Nikki+Nicholas+Romero");
     }
 
     @Test
