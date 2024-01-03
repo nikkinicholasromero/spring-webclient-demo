@@ -32,8 +32,7 @@ public class SimpleWebClient {
                         .queryParamIfPresent("id", id)
                         .build())
                 .header("X-Custom-Header", "some-value")
-                .retrieve()
-                .bodyToMono(String.class);
+                .exchangeToMono(e -> e.bodyToMono(String.class));
     }
 
     public Mono<String> post_withJsonRequestBody(RequestBody request) {
@@ -42,8 +41,7 @@ public class SimpleWebClient {
                 .uri(host)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(request))
-                .retrieve()
-                .bodyToMono(String.class);
+                .exchangeToMono(e -> e.bodyToMono(String.class));
     }
 
     public Mono<String> put_withFileRequestBody(File file, String name) {
@@ -52,8 +50,7 @@ public class SimpleWebClient {
                 .uri(host)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(multipart(file, name)))
-                .retrieve()
-                .bodyToMono(String.class);
+                .exchangeToMono(e -> e.bodyToMono(String.class));
     }
 
     public Mono<String> patch_withFormRequestBody(RequestBody request) {
@@ -62,8 +59,7 @@ public class SimpleWebClient {
                 .uri(host)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(BodyInserters.fromFormData(form(request)))
-                .retrieve()
-                .bodyToMono(String.class);
+                .exchangeToMono(e -> e.bodyToMono(String.class));
     }
 
     public Mono<String> delete_withPathSegment(String id) {
@@ -72,8 +68,7 @@ public class SimpleWebClient {
                 .uri(host, uriBuilder -> uriBuilder
                         .pathSegment(id)
                         .build())
-                .retrieve()
-                .bodyToMono(String.class);
+                .exchangeToMono(e -> e.bodyToMono(String.class));
     }
 
     private MultiValueMap<String, HttpEntity<?>> multipart(File file, String name) {
